@@ -1,9 +1,10 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
-import type { Post } from './page'
+
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
+import type { Post } from './post-form'
 
 export type TokenPayload = {
   sub: string

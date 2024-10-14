@@ -1,6 +1,6 @@
 import { useState, useTransition, type FormEvent } from 'react'
 
-interface FormState {
+export interface FormState {
   success: boolean
   message: string | null
   errors: Record<string, string[]> | null

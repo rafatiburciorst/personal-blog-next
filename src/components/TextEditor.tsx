@@ -1,6 +1,5 @@
-// components/Editor.tsx
-import { useState } from 'react'
-import ReactQuill from 'react-quill'
+'use client'
+import ReactQuill from 'react-quill-new'
 import 'react-quill/dist/quill.snow.css'
 
 interface TextEditorProps {
@@ -8,8 +7,6 @@ interface TextEditorProps {
 }
 
 const TextEditor = ({ onChange }: TextEditorProps) => {
-  const [value, setValue] = useState<string>('')
-
   return (
     <ReactQuill
       theme="snow"
@@ -30,7 +27,6 @@ const TextEditor = ({ onChange }: TextEditorProps) => {
         'header',
         'font',
         'list',
-        'bullet',
         'bold',
         'italic',
         'underline',

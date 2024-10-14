@@ -1,46 +1,61 @@
 'use server'
 
+import type { FormState } from '@/@hooks/form-state'
 import { prisma } from '@/lib/prisma'
-import type { Login } from './page'
 import { compare } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
+import { z } from 'zod'
 
-export async function login(data: Login) {
-  const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY!
-  const user = await prisma.user.findUnique({
-    where: {
-      email: data.email,
-    },
-  })
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+})
 
-  if (!user) {
-    throw new Error('User not found')
+export async function handleActionLogin(data: FormData): Promise<FormState> {
+  console.log(Object.fromEntries(data))
+  const result = loginSchema.safeParse(Object.fromEntries(data))
+  if (!result.success) {
+    const errors = result.error.flatten().fieldErrors
+    return { success: false, message: null, errors }
   }
 
-  const comparePassword = await compare(data.password, user.password)
+  const { email, password } = result.data
 
-  if (!comparePassword) throw new Error('User or password does not match')
+  try {
+    const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY!
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    })
 
-  const token = jwt.sign(
-    {
-      sub: user.id,
-    },
-    JWT_SECRET_KEY,
-    {
-      algorithm: 'HS256',
-      expiresIn: '7d',
+    if (!user) {
+      throw new Error('User not found')
     }
-  )
 
-  cookies().set('token', token, {
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  })
+    const comparePassword = await compare(password, user.password)
 
-  const payload = { ...user, password: undefined }
+    if (!comparePassword) throw new Error('User or password does not match')
 
-  return {
-    payload,
+    const token = jwt.sign(
+      {
+        sub: user.id,
+      },
+      JWT_SECRET_KEY,
+      {
+        algorithm: 'HS256',
+        expiresIn: '7d',
+      }
+    )
+
+    cookies().set('token', token, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    })
+
+    return { success: true, message: null, errors: null }
+  } catch (error: any) {
+    return { success: false, message: error.message, errors: null }
   }
 }

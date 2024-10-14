@@ -1,5 +1,4 @@
 'use client'
-import { useState, useTransition, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,31 +7,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { saveMessage } from './actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useFormState } from '@/@hooks/form-state'
 
 export function ContactForm() {
-  const [isPending, startTransition] = useTransition()
-
-  const [{ success, message, errors }, setFormState] = useState<{
-    success: boolean
-    message: string | null
-    errors: Record<string, string[]> | null
-  }>({
-    success: false,
-    message: null,
-    errors: null,
-  })
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = event.currentTarget
-    const data = new FormData(form)
-
-    startTransition(async () => {
-      const state = await saveMessage(data)
-      setFormState(state)
-      form.reset()
-    })
-  }
+  const [{ success, message, errors }, handleSubmit, isPending] =
+    useFormState(saveMessage)
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-8 w-full px-16">
